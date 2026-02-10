@@ -97,18 +97,19 @@ Automatizaciones incluidas:
 # 1. Después de instalar OpenClaw...
 
 # 2. Obtener el kit
-git clone [url-del-kit] ~/starter-kit
+git clone https://github.com/hrikrdo/openclaw-starter-kit.git ~/starter-kit
 
 # 3. Ejecutar setup
 cd ~/starter-kit
+chmod +x scripts/setup-workspace.sh
 ./scripts/setup-workspace.sh
 
-# 4. Personalizar
+# 4. Personalizar (obligatorio)
 nano ~/.openclaw/workspace/IDENTITY.md
 nano ~/.openclaw/workspace/SOUL.md
 nano ~/.openclaw/workspace/USER.md
 
-# 5. Listo!
+# 5. Listo! El agente ya tiene conocimiento base.
 ```
 
 ---

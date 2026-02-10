@@ -241,10 +241,10 @@ El wizard te preguntará:
 
 ```bash
 # Desde GitHub (ajusta la URL a tu repo)
-git clone https://github.com/TU_USUARIO/openclaw-starter-kit.git ~/starter-kit
+git clone https://github.com/hrikrdo/openclaw-starter-kit.git ~/starter-kit
 
 # O descargar ZIP
-wget https://github.com/TU_USUARIO/openclaw-starter-kit/archive/main.zip
+wget https://github.com/hrikrdo/openclaw-starter-kit/archive/main.zip
 unzip main.zip && mv openclaw-starter-kit-main ~/starter-kit
 ```
 

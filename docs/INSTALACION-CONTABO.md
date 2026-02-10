@@ -198,7 +198,7 @@ Responder:
 
 ```bash
 # Desde GitHub
-git clone https://github.com/TU_USUARIO/openclaw-starter-kit.git ~/starter-kit
+git clone https://github.com/hrikrdo/openclaw-starter-kit.git ~/starter-kit
 
 # O copiar desde otro servidor por Tailscale
 scp -r usuario@TU_IP_TAILSCALE:~/openclaw-starter-kit ~/starter-kit
