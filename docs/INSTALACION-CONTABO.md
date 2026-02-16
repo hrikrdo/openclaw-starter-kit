@@ -2,16 +2,16 @@
 
 **Adaptación para VPS de Contabo**
 
-Basado en la guía de [Velvet Shark](https://velvetshark.com/clawdbot-the-self-hosted-ai-that-siri-should-have-been).
+> Actualizado: Febrero 2026 | Basado en [docs.openclaw.ai](https://docs.openclaw.ai)
 
 ---
 
 ## 🎯 Por qué Contabo
 
-- Mejor relación precio/rendimiento que Hetzner
+- Mejor relación precio/rendimiento
 - 4 cores + 8GB RAM por ~$7/mes
 - Ubicaciones en EU y US
-- Ideal para OpenClaw + servicios adicionales (trading, dashboards, etc.)
+- Ideal para OpenClaw + servicios adicionales
 
 ---
 
@@ -49,15 +49,15 @@ passwd
 apt update && apt upgrade -y
 ```
 
-### 1.4 Crear usuario clawdbot
+### 1.4 Crear usuario openclaw
 
 ```bash
-# Crear usuario con password deshabilitado
-adduser clawdbot
-usermod -aG sudo clawdbot
+# Crear usuario
+adduser openclaw
+usermod -aG sudo openclaw
 
 # Crear directorio SSH
-mkdir -p /home/clawdbot/.ssh
+mkdir -p /home/openclaw/.ssh
 ```
 
 ### 1.5 Agregar tu clave SSH
@@ -70,16 +70,16 @@ cat ~/.ssh/id_ed25519.pub
 En el servidor Contabo:
 ```bash
 # Pega tu clave pública
-echo "TU_CLAVE_PUBLICA_COMPLETA" >> /home/clawdbot/.ssh/authorized_keys
-chown -R clawdbot:clawdbot /home/clawdbot/.ssh
-chmod 700 /home/clawdbot/.ssh
-chmod 600 /home/clawdbot/.ssh/authorized_keys
+echo "TU_CLAVE_PUBLICA_COMPLETA" >> /home/openclaw/.ssh/authorized_keys
+chown -R openclaw:openclaw /home/openclaw/.ssh
+chmod 700 /home/openclaw/.ssh
+chmod 600 /home/openclaw/.ssh/authorized_keys
 ```
 
 ### 1.6 Dar permisos sudo sin password
 
 ```bash
-echo "clawdbot ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/clawdbot
+echo "openclaw ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/openclaw
 ```
 
 ---
@@ -136,7 +136,7 @@ sudo ufw --force enable
 ss -tlnp | grep ":22"
 
 # Probar conexión por Tailscale (desde tu Mac/PC)
-ssh clawdbot@100.x.x.x
+ssh openclaw@100.x.x.x
 ```
 
 **⚠️ No cierres la sesión actual hasta verificar acceso por Tailscale.**
@@ -145,50 +145,46 @@ ssh clawdbot@100.x.x.x
 
 ## PARTE 4: Instalar OpenClaw
 
-### 4.1 Cambiar a usuario clawdbot
+### 4.1 Cambiar a usuario openclaw
 
 ```bash
-su - clawdbot
+su - openclaw
 ```
 
-### 4.2 Instalar Node.js
+### 4.2 Instalar Node.js 22+
 
 ```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-source ~/.bashrc
-nvm install 24
-corepack enable pnpm
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt-get install -y nodejs
 ```
 
-### 4.3 (Opcional) Instalar Homebrew
-
+Verificar:
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+node -v  # Debe ser v22.x.x o superior
 ```
 
-### 4.4 Clonar e instalar OpenClaw
+### 4.3 Instalar OpenClaw
 
 ```bash
-git clone https://github.com/clawdbot/clawdbot.git
-cd clawdbot
-pnpm install
-pnpm run build
-pnpm run ui:install
+npm install -g openclaw
+```
+
+### 4.4 Verificar y diagnosticar
+
+```bash
+openclaw --version
+openclaw doctor
 ```
 
 ### 4.5 Configurar
 
 ```bash
-pnpm run clawdbot onboard
+openclaw setup
 ```
 
 Responder:
-- **Gateway:** local
-- **Runtime:** Node
-- **Auth:** OAuth o API key
-- **Provider:** Telegram
+- **Auth:** OAuth (Claude Pro) o API key
+- **Channel:** Telegram (recomendado)
 
 ---
 
@@ -197,11 +193,7 @@ Responder:
 ### 5.1 Obtener el kit
 
 ```bash
-# Desde GitHub
 git clone https://github.com/hrikrdo/openclaw-starter-kit.git ~/starter-kit
-
-# O copiar desde otro servidor por Tailscale
-scp -r usuario@TU_IP_TAILSCALE:~/openclaw-starter-kit ~/starter-kit
 ```
 
 ### 5.2 Ejecutar setup
@@ -224,48 +216,31 @@ nano ~/.openclaw/workspace/USER.md
 
 ## PARTE 6: Ejecutar como Servicio
 
-### 6.1 Crear servicio
+### 6.1 Instalar servicio (automático)
 
 ```bash
-# Obtener ruta exacta de node
-NODE_PATH=$(which node)
-echo "Node path: $NODE_PATH"
-
-sudo tee /etc/systemd/system/clawdbot.service << EOF
-[Unit]
-Description=OpenClaw Gateway
-After=network.target
-
-[Service]
-Type=simple
-User=clawdbot
-WorkingDirectory=/home/clawdbot/clawdbot
-ExecStart=$NODE_PATH node_modules/.bin/pnpm run gateway
-Restart=always
-RestartSec=10
-Environment=PATH=$(dirname $NODE_PATH):/usr/bin:/bin
-
-[Install]
-WantedBy=multi-user.target
-EOF
+openclaw gateway install
 ```
 
-### 6.2 Iniciar
+### 6.2 Habilitar persistencia
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable clawdbot
-sudo systemctl start clawdbot
-sudo systemctl status clawdbot
+sudo loginctl enable-linger $USER
 ```
 
-### 6.3 Aprobar usuario
+### 6.3 Verificar
+
+```bash
+openclaw gateway status
+openclaw status
+```
+
+### 6.4 Aprobar usuario
 
 ```bash
 # Envía mensaje al bot, luego:
-cd ~/clawdbot
-pnpm run clawdbot pairing list --provider telegram
-pnpm run clawdbot pairing approve --provider telegram <code>
+openclaw pairing list --provider telegram
+openclaw pairing approve --provider telegram <code>
 ```
 
 ---
@@ -309,6 +284,18 @@ Para solo OpenClaw, el **VPS S** es más que suficiente.
 
 ## 🚨 Troubleshooting Contabo
 
+### `openclaw: command not found`
+
+```bash
+# Verificar PATH
+npm prefix -g
+echo $PATH
+
+# Arreglar
+export PATH="$(npm prefix -g)/bin:$PATH"
+# Agregar a ~/.bashrc
+```
+
 ### "Connection refused" después de asegurar SSH
 ```bash
 # Verificar Tailscale
@@ -329,19 +316,42 @@ htop
 
 ### OpenClaw no inicia
 ```bash
-sudo journalctl -u clawdbot -f
-# Revisar errores
+openclaw doctor
+openclaw gateway status
+openclaw logs --follow
+```
+
+---
+
+## Comandos Rápidos
+
+```bash
+# Estado
+openclaw status
+openclaw gateway status
+
+# Reiniciar
+openclaw gateway restart
+
+# Logs
+openclaw logs --follow
+
+# Diagnóstico
+openclaw doctor
+openclaw health
+
+# Canales
+openclaw channels status
 ```
 
 ---
 
 ## Recursos
 
-- **Docs OpenClaw:** https://docs.clawd.bot
-- **GitHub:** https://github.com/clawdbot/clawdbot
+- **Docs OpenClaw:** https://docs.openclaw.ai
+- **GitHub:** https://github.com/openclaw/openclaw
 - **Discord:** https://discord.com/invite/clawd
-- **Guía Velvet Shark:** https://velvetshark.com/clawdbot-the-self-hosted-ai-that-siri-should-have-been
 
 ---
 
-*Guía para Contabo | OpenClaw Starter Kit*
+*Guía para Contabo | OpenClaw Starter Kit | Febrero 2026*

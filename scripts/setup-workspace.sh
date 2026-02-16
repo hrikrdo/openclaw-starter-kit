@@ -27,7 +27,8 @@ echo ""
 # Verificar que OpenClaw está instalado
 if [ ! -d "${HOME}/.openclaw" ]; then
     echo -e "${YELLOW}⚠️  OpenClaw no está instalado.${NC}"
-    echo "Ejecuta primero: pnpm run clawdbot onboard"
+    echo "Ejecuta primero: openclaw setup"
+    echo "Ver: https://docs.openclaw.ai/start/getting-started"
     exit 1
 fi
 
@@ -198,5 +199,6 @@ echo "   crontab -e"
 echo "   # Agregar: 0 3 * * * ${HOME}/scripts/cleanup-temp.sh >> ${HOME}/logs/cleanup.log 2>&1"
 echo ""
 echo "3. Inicia OpenClaw:"
-echo "   pnpm run gateway"
+echo "   openclaw gateway install   # Instalar como servicio"
+echo "   openclaw gateway status    # Verificar estado"
 echo ""

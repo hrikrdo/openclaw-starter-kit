@@ -154,11 +154,11 @@ ssh clawdbot@100.x.x.x
 
 ```bash
 # Ver solicitudes pendientes
-pnpm run clawdbot pairing list --provider telegram
+openclaw pairing list --provider telegram
 
 # Aprobar cada usuario
-pnpm run clawdbot pairing approve --provider telegram CODIGO_USUARIO1
-pnpm run clawdbot pairing approve --provider telegram CODIGO_USUARIO2
+openclaw pairing approve --provider telegram CODIGO_USUARIO1
+openclaw pairing approve --provider telegram CODIGO_USUARIO2
 # ... repetir para cada miembro
 ```
 

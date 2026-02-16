@@ -2,7 +2,7 @@
 
 **OpenClaw + Estructura de Trabajo + Conocimiento Base**
 
-Basado en la guía de [Velvet Shark](https://velvetshark.com/clawdbot-the-self-hosted-ai-that-siri-should-have-been).
+> Actualizado: Febrero 2026 | Basado en [docs.openclaw.ai](https://docs.openclaw.ai)
 
 ---
 
@@ -16,7 +16,7 @@ Basado en la guía de [Velvet Shark](https://velvetshark.com/clawdbot-the-self-h
 6. [Instalar OpenClaw](#parte-5-instalar-openclaw)
 7. [Aplicar Starter Kit](#parte-6-aplicar-starter-kit)
 8. [Personalizar Agente](#parte-7-personalizar-agente)
-9. [Ejecutar](#parte-8-ejecutar)
+9. [Ejecutar como Servicio](#parte-8-ejecutar-como-servicio)
 10. [Troubleshooting](#troubleshooting)
 
 ---
@@ -32,6 +32,7 @@ Basado en la guía de [Velvet Shark](https://velvetshark.com/clawdbot-the-self-h
 - Ubuntu 22.04 o 24.04
 - Mínimo 2 vCPU, 4GB RAM (para browser automation)
 - 20GB+ disco
+- **Node.js 22+** (el instalador lo instala si falta)
 
 **Costo aproximado:**
 - VPS: ~$5-7/mes
@@ -79,25 +80,28 @@ ssh root@TU_IP_PUBLICA
 apt update && apt upgrade -y
 ```
 
-### 2.3 Crear usuario clawdbot
+### 2.3 Crear usuario openclaw
 
 ```bash
 # Crear usuario
-adduser clawdbot
-usermod -aG sudo clawdbot
+adduser openclaw
+usermod -aG sudo openclaw
 
 # Configurar SSH para el usuario
-mkdir -p /home/clawdbot/.ssh
-cp ~/.ssh/authorized_keys /home/clawdbot/.ssh/
-chown -R clawdbot:clawdbot /home/clawdbot/.ssh
-chmod 700 /home/clawdbot/.ssh
-chmod 600 /home/clawdbot/.ssh/authorized_keys
+mkdir -p /home/openclaw/.ssh
+cp ~/.ssh/authorized_keys /home/openclaw/.ssh/
+chown -R openclaw:openclaw /home/openclaw/.ssh
+chmod 700 /home/openclaw/.ssh
+chmod 600 /home/openclaw/.ssh/authorized_keys
+
+# Sudo sin password (opcional pero recomendado)
+echo "openclaw ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/openclaw
 ```
 
-### 2.4 Cambiar al usuario clawdbot
+### 2.4 Cambiar al usuario openclaw
 
 ```bash
-su - clawdbot
+su - openclaw
 ```
 
 ---
@@ -181,50 +185,48 @@ nc -zv TU_IP_PUBLICA 22
 
 ## PARTE 5: Instalar OpenClaw
 
-### 5.1 Instalar Node.js
+### 5.1 Instalar Node.js 22+
 
+**Opción A: NodeSource (recomendado)**
 ```bash
-# Instalar nvm
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+**Opción B: nvm (si necesitas múltiples versiones)**
+```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 source ~/.bashrc
-
-# Instalar Node 24
-nvm install 24
-
-# Habilitar pnpm
-corepack enable pnpm
+nvm install 22
 ```
 
-### 5.2 (Opcional) Instalar Homebrew
-
-Necesario para algunos skills:
+**Verificar:**
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
-eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+node -v  # Debe ser v22.x.x o superior
 ```
 
-### 5.3 Clonar e instalar OpenClaw
+### 5.2 Instalar OpenClaw
 
 ```bash
-git clone https://github.com/clawdbot/clawdbot.git
-cd clawdbot
-pnpm install
-pnpm run build
-pnpm run ui:install
+npm install -g openclaw
+```
+
+### 5.3 Verificar instalación
+
+```bash
+openclaw --version
+openclaw doctor  # Diagnóstico de problemas
 ```
 
 ### 5.4 Configurar OpenClaw
 
 ```bash
-pnpm run clawdbot onboard
+openclaw setup
 ```
 
 El wizard te preguntará:
-- **Gateway:** local
-- **Runtime:** Node (requerido para WhatsApp)
-- **Auth:** OAuth (si tienes Claude Pro) o API key
-- **Provider:** Telegram (recomendado)
+- **Auth:** OAuth (Claude Pro) o API key
+- **Channel:** Telegram (recomendado para empezar)
 
 ### 5.5 Crear bot de Telegram
 
@@ -232,6 +234,7 @@ El wizard te preguntará:
 2. Envía `/newbot`
 3. Sigue las instrucciones
 4. Copia el **token** que te da
+5. Pégalo cuando `openclaw setup` lo pida
 
 ---
 
@@ -240,12 +243,7 @@ El wizard te preguntará:
 ### 6.1 Obtener el Starter Kit
 
 ```bash
-# Desde GitHub (ajusta la URL a tu repo)
 git clone https://github.com/hrikrdo/openclaw-starter-kit.git ~/starter-kit
-
-# O descargar ZIP
-wget https://github.com/hrikrdo/openclaw-starter-kit/archive/main.zip
-unzip main.zip && mv openclaw-starter-kit-main ~/starter-kit
 ```
 
 ### 6.2 Ejecutar setup
@@ -255,6 +253,8 @@ cd ~/starter-kit
 chmod +x scripts/setup-workspace.sh
 ./scripts/setup-workspace.sh
 ```
+
+Esto copia la estructura de workspace a `~/.openclaw/workspace/`.
 
 ---
 
@@ -280,66 +280,67 @@ nano ~/.openclaw/workspace/USER.md
 
 ---
 
-## PARTE 8: Ejecutar
+## PARTE 8: Ejecutar como Servicio
 
-### 8.1 Verificar instalación
+### 8.1 Instalar servicio (automático)
 
 ```bash
-cd ~/clawdbot
-pnpm run clawdbot daemon status
-pnpm run clawdbot health
+openclaw gateway install
 ```
 
-### 8.2 Aprobar tu cuenta
+Esto crea y habilita el servicio systemd automáticamente.
+
+### 8.2 Verificar estado
+
+```bash
+openclaw gateway status
+openclaw status  # Vista general
+```
+
+### 8.3 Habilitar persistencia (Linux)
+
+Para que el servicio siga corriendo después de logout:
+
+```bash
+sudo loginctl enable-linger $USER
+```
+
+### 8.4 Aprobar tu cuenta
 
 Envía un mensaje al bot en Telegram, luego:
 
 ```bash
-pnpm run clawdbot pairing list --provider telegram
-pnpm run clawdbot pairing approve --provider telegram <code>
+openclaw pairing list --provider telegram
+openclaw pairing approve --provider telegram <code>
 ```
 
-### 8.3 Configurar como servicio
+### 8.5 Comandos útiles
 
 ```bash
-sudo tee /etc/systemd/system/clawdbot.service << 'EOF'
-[Unit]
-Description=OpenClaw Gateway
-After=network.target
-
-[Service]
-Type=simple
-User=clawdbot
-WorkingDirectory=/home/clawdbot/clawdbot
-ExecStart=/home/clawdbot/.nvm/versions/node/v24.0.0/bin/node node_modules/.bin/pnpm run gateway
-Restart=always
-RestartSec=10
-Environment=PATH=/home/clawdbot/.nvm/versions/node/v24.0.0/bin:/usr/bin:/bin
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-sudo systemctl daemon-reload
-sudo systemctl enable clawdbot
-sudo systemctl start clawdbot
-```
-
-### 8.4 Configurar limpieza automática
-
-```bash
-mkdir -p ~/logs
-crontab -e
-```
-
-Agregar:
-```
-0 3 * * * /home/clawdbot/scripts/cleanup-temp.sh >> /home/clawdbot/logs/cleanup.log 2>&1
+openclaw gateway status    # Estado del gateway
+openclaw gateway restart   # Reiniciar
+openclaw gateway stop      # Detener
+openclaw logs --follow     # Ver logs en tiempo real
+openclaw doctor            # Diagnóstico de problemas
+openclaw health            # Verificar salud
 ```
 
 ---
 
 ## Troubleshooting
+
+### `openclaw: command not found`
+
+El directorio de npm global no está en PATH:
+```bash
+# Diagnosticar
+npm prefix -g
+echo $PATH
+
+# Arreglar (agregar a ~/.bashrc)
+export PATH="$(npm prefix -g)/bin:$PATH"
+source ~/.bashrc
+```
 
 ### No puedo conectar por SSH
 - Verifica que Tailscale esté activo: `tailscale status`
@@ -347,19 +348,24 @@ Agregar:
 
 ### OpenClaw no responde
 ```bash
-sudo systemctl status clawdbot
-sudo journalctl -u clawdbot -f
+openclaw doctor           # Diagnóstico
+openclaw gateway status   # Estado del servicio
+openclaw logs --follow    # Ver logs
 ```
 
-### Ver logs
+### Errores de permisos en npm
 ```bash
-tail -f ~/.openclaw/logs/gateway.log
+mkdir -p "$HOME/.npm-global"
+npm config set prefix "$HOME/.npm-global"
+export PATH="$HOME/.npm-global/bin:$PATH"
+# Agregar la línea anterior a ~/.bashrc
 ```
 
-### Acceder al Gateway UI de forma segura
+### Acceder al Gateway UI
+
 ```bash
 # Desde tu máquina local, crear túnel SSH
-ssh -L 18789:127.0.0.1:18789 clawdbot@TU_IP_TAILSCALE
+ssh -L 18789:127.0.0.1:18789 openclaw@TU_IP_TAILSCALE
 
 # Luego abrir en navegador
 http://127.0.0.1:18789/
@@ -367,14 +373,27 @@ http://127.0.0.1:18789/
 
 ---
 
-## Recursos
+## Variables de Entorno (Avanzado)
 
-- **Docs oficiales:** https://docs.clawd.bot
-- **GitHub:** https://github.com/clawdbot/clawdbot
-- **Discord:** https://discord.com/invite/clawd
-- **Skills:** https://clawdhub.com/skills
-- **Guía original:** https://velvetshark.com/clawdbot-the-self-hosted-ai-that-siri-should-have-been
+Si necesitas rutas personalizadas:
+
+| Variable | Uso |
+|----------|-----|
+| `OPENCLAW_HOME` | Directorio base interno |
+| `OPENCLAW_STATE_DIR` | Ubicación de estado mutable |
+| `OPENCLAW_CONFIG_PATH` | Ubicación del archivo de config |
+
+Ver más: [Environment vars](https://docs.openclaw.ai/help/environment)
 
 ---
 
-*OpenClaw Starter Kit | Basado en guía de Velvet Shark*
+## Recursos
+
+- **Docs oficiales:** https://docs.openclaw.ai
+- **GitHub:** https://github.com/openclaw/openclaw
+- **Discord:** https://discord.com/invite/clawd
+- **Skills:** https://clawdhub.com
+
+---
+
+*OpenClaw Starter Kit | Actualizado Febrero 2026*

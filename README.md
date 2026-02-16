@@ -94,7 +94,9 @@ Automatizaciones incluidas:
 ## 📦 Instalación Rápida
 
 ```bash
-# 1. Después de instalar OpenClaw...
+# 1. Instalar OpenClaw (si no lo tienes)
+npm install -g openclaw
+openclaw setup
 
 # 2. Obtener el kit
 git clone https://github.com/hrikrdo/openclaw-starter-kit.git ~/starter-kit
@@ -109,7 +111,11 @@ nano ~/.openclaw/workspace/IDENTITY.md
 nano ~/.openclaw/workspace/SOUL.md
 nano ~/.openclaw/workspace/USER.md
 
-# 5. Listo! El agente ya tiene conocimiento base.
+# 5. Iniciar como servicio
+openclaw gateway install
+openclaw gateway status
+
+# 6. Listo! El agente ya tiene conocimiento base.
 ```
 
 ---
@@ -185,6 +191,7 @@ MIT - Usa, modifica, comparte libremente.
 
 ---
 
-*OpenClaw Starter Kit v1.0*
-*Basado en guía de [Velvet Shark](https://velvetshark.com/clawdbot-the-self-hosted-ai-that-siri-should-have-been)*
-*Repo oficial OpenClaw: https://github.com/clawdbot/clawdbot*
+*OpenClaw Starter Kit v1.1*
+*Actualizado: Febrero 2026*
+*Docs oficiales: https://docs.openclaw.ai*
+*Repo oficial: https://github.com/openclaw/openclaw*
