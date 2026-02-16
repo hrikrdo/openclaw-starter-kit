@@ -94,9 +94,28 @@ chown -R openclaw:openclaw /home/openclaw/.ssh
 chmod 700 /home/openclaw/.ssh
 chmod 600 /home/openclaw/.ssh/authorized_keys
 
-# Sudo sin password (opcional pero recomendado)
+# Sudo sin password (recomendado para administración completa)
 echo "openclaw ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/openclaw
 ```
+
+> **⚠️ Sobre los Permisos**
+> 
+> El comando `NOPASSWD: ALL` permite al agente administrar completamente el VPS sin pedir contraseña. Esto es **necesario** para que OpenClaw pueda:
+> - Instalar y actualizar software (`apt install`)
+> - Crear y gestionar servicios (`systemctl`)
+> - Configurar firewall y red (`ufw`, `tailscale`)
+> - Editar archivos del sistema (`/etc/...`)
+> 
+> **¿Es seguro?** Sí, porque:
+> 1. El acceso SSH está limitado a Tailscale (red privada)
+> 2. No se usa root directamente (mejor auditoría)
+> 3. Solo tú tienes acceso a la red Tailscale
+> 
+> **Alternativa restrictiva:** Si prefieres limitar qué puede hacer el agente:
+> ```bash
+> # Solo comandos específicos
+> echo "openclaw ALL=(ALL) NOPASSWD: /usr/bin/apt, /usr/bin/systemctl, /usr/sbin/ufw" > /etc/sudoers.d/openclaw
+> ```
 
 ### 2.4 Cambiar al usuario openclaw
 

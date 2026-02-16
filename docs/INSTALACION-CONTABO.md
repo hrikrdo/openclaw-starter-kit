@@ -82,6 +82,12 @@ chmod 600 /home/openclaw/.ssh/authorized_keys
 echo "openclaw ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/openclaw
 ```
 
+> **⚠️ Sobre los Permisos**
+> 
+> Esto permite al agente administrar completamente el VPS (instalar software, gestionar servicios, configurar sistema). Es seguro porque el acceso SSH está limitado a Tailscale.
+> 
+> Ver explicación completa en `INSTALACION-COMPLETA.md`.
+
 ---
 
 ## PARTE 2: Instalar Tailscale
